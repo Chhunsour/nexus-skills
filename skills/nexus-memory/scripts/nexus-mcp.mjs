@@ -9,6 +9,8 @@
     node nexus-mcp.mjs related <record-id> [--depth 1|2]
     node nexus-mcp.mjs decisions [--project <id>] [--limit 1-30]
     node nexus-mcp.mjs solutions "<query>" [--project <id>]
+    node nexus-mcp.mjs remember "<content>" [--title "<title>"] [--type agent_finding] [--project <id>]
+                                [--tags "a,b"] [--updates <your-earlier-memory-id>]
     node nexus-mcp.mjs propose --title "<title>" --body "<body>" [--kind memory] [--type agent_finding]
                                [--project <id>] [--action create|update|link] [--target <record-id>]
                                [--rationale "<why>"] [--tags "a,b"]
@@ -19,8 +21,8 @@
     --app <path>        path to NEXUS.app or its binary  (NEXUS_APP, default: /Applications/NEXUS.app)
     --raw               print the tool's raw text instead of pretty JSON
 
-  The connector is read-only except for propose_memory, which only queues a proposal for the owner's review.
-  It only ever returns records the owner has verified AND shared with agents.
+  Writes: `remember` saves your own unverified memory (recallable by you at once); `propose_memory` queues a
+  change to the owner's records for review. Reads return the owner's verified+shared records plus your own memories.
 */
 import { spawn } from "node:child_process";
 import fs from "node:fs";
@@ -171,6 +173,13 @@ switch (command) {
     if (!rest[0]) usage();
     request = toolCall("find_solutions", compact({ query: rest[0], project_id: flag("project") }));
     break;
+  case "remember":
+    if (!rest[0]) usage();
+    request = toolCall(
+      "remember",
+      compact({ content: rest[0], title: flag("title"), memory_type: flag("type"), project_id: flag("project"), tags: flag("tags"), updates: flag("updates") }),
+    );
+    break;
   case "propose": {
     const proposal = compact({
       action: flag("action") ?? "create",
@@ -220,7 +229,7 @@ try {
         const value = JSON.parse(text);
         console.log(JSON.stringify(value, null, 2));
         if (Array.isArray(value) && value.length === 0 && command !== "propose") {
-          console.error("(No results. Agents only see records the owner has verified and shared with agents; empty is not proof of absence.)");
+          console.error("(No results. Agents only see records the owner has verified and shared, plus memories they saved with remember; empty is not proof of absence.)");
         }
       } catch {
         console.log(text);
