@@ -1,0 +1,22 @@
+name: validate
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Skill format
+        run: node tools/validate-skills.mjs
+      - name: Bundled scripts in sync
+        run: bash tools/sync-scripts.sh --check
+      - name: Script syntax
+        run: for f in shared/scripts/*.mjs skills/*/scripts/*.mjs tools/*.mjs; do node --check "$f"; done
+      - name: Plugin manifests are valid JSON
+        run: for f in .claude-plugin/*.json; do node -e "JSON.parse(require('fs').readFileSync('$f','utf8'))"; done

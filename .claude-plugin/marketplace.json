@@ -1,0 +1,23 @@
+{
+  "name": "nexus-skills",
+  "owner": {
+    "name": "Chhunsour"
+  },
+  "metadata": {
+    "description": "Agent skills for the NEXUS second brain: recall verified project memory before work, record outcomes after, connect any agent.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "nexus",
+      "description": "Use the NEXUS second brain as long-term memory: setup and diagnostics, recall and record, and capturing project knowledge into the review queue.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/nexus-memory",
+        "./skills/nexus-setup",
+        "./skills/nexus-capture"
+      ]
+    }
+  ]
+}
